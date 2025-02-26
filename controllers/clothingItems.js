@@ -6,7 +6,8 @@ const {
 } = require("../utils/errors");
 
 const getItems = (req, res) => {
-  ClothingItem.find({})
+  clothingItem
+    .find({})
     .then((items) => {
       res.status(200).send(items);
     })
@@ -23,7 +24,8 @@ const createItem = (req, res) => {
 
   console.log(req.user._id);
 
-  ClothingItem.create({ name, weather, imageUrl, userId: req.user._id })
+  clothingItem
+    .create({ name, weather, imageUrl, userId: req.user._id })
     .then((item) => res.status(201).send(item))
     .catch((err) => {
       console.error(err);
@@ -43,7 +45,8 @@ const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
 
-  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
+  clothingItem
+    .findByIdAndUpdate(itemId, { $set: { imageUrl } })
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
@@ -57,7 +60,8 @@ const updateItem = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
   console.log(itemId);
-  ClothingItem.findById(itemId)
+  clothingItem
+    .findById(itemId)
     .orFail()
     .then((item) =>
       clothingItem
@@ -85,11 +89,12 @@ const deleteItem = (req, res) => {
 };
 
 const likeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true }
-  )
+  clothingItem
+    .findByIdAndUpdate(
+      req.params.itemId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true }
+    )
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
@@ -107,11 +112,12 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
+  clothingItem
+    .findByIdAndUpdate(
+      req.params.itemId,
+      { $pull: { likes: req.user._id } },
+      { new: true }
+    )
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
