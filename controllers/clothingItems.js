@@ -1,5 +1,4 @@
 const clothingItem = require("../models/clothingItem");
-const ClothingItem = require("../models/clothingItem");
 const {
   BAD_REQUEST,
   NOT_FOUND,
@@ -11,7 +10,8 @@ const getItems = (req, res) => {
     .then((items) => {
       res.status(200).send(items);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error has occurred on the server." });
@@ -26,6 +26,7 @@ const createItem = (req, res) => {
   ClothingItem.create({ name, weather, imageUrl, userId: req.user._id })
     .then((item) => res.status(201).send(item))
     .catch((err) => {
+      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({
           message:
@@ -42,11 +43,11 @@ const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
 
-  clothingItem
-    .findByIdAndUpdate(itemId, { $set: { imageUrl } })
+  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
     .orFail()
     .then((item) => res.status(200).send(item))
-    .catch(() => {
+    .catch((err) => {
+      console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error has occurred on the server." });
@@ -58,15 +59,16 @@ const deleteItem = (req, res) => {
   console.log(itemId);
   ClothingItem.findById(itemId)
     .orFail()
-    .then((item) => {
-      return clothingItem
+    .then((item) =>
+      clothingItem
         .findByIdAndDelete(itemId)
 
         .then(() => {
           res.status(200).send(item);
-        });
-    })
+        })
+    )
     .catch((err) => {
+      console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: err.message });
       }
@@ -91,6 +93,7 @@ const likeItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
+      console.error(err);
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
       }
@@ -112,6 +115,8 @@ const dislikeItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
+      console.error(err);
+
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
       }
