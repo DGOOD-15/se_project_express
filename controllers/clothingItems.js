@@ -43,7 +43,6 @@ const createItem = (req, res) => {
 const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
-
   clothingItem
     .findByIdAndUpdate(itemId, { $set: { imageUrl } })
     .orFail()
