@@ -3,6 +3,7 @@ const {
   BAD_REQUEST,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
+  FORBIDDEN_STATUS,
 } = require("../utils/errors");
 
 const getItems = (req, res) => {
@@ -42,19 +43,23 @@ const createItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
+  const userId = req.user._id;
   const { itemId } = req.params;
   console.log(itemId);
   clothingItem
     .findById(itemId)
     .orFail()
-    .then((item) =>
-      clothingItem
-        .findByIdAndDelete(itemId)
+    .then((item) => {
+      if (item.owner.toString() !== userId) {
+        return res.status(FORBIDDEN_STATUS).json({
+          message: "Forbidden: You are not the owner of this item.",
+        });
+      }
 
-        .then(() => {
-          res.status(200).send(item);
-        })
-    )
+      return clothingItem
+        .findByIdAndDelete(itemId)
+        .then(() => res.json({ message: "Item successfully deleted" }));
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
