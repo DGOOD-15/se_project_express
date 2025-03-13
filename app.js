@@ -14,4 +14,12 @@ app.use(cors());
 
 app.use("/", mainRouter);
 
+app.use((req, res, next) => {
+  req.user = {
+    _id: "...",
+  };
+
+  next();
+});
+
 app.listen(PORT);
