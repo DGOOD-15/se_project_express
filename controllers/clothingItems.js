@@ -6,17 +6,14 @@ const {
   FORBIDDEN_STATUS,
 } = require("../utils/errors");
 
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   clothingItem
     .find({})
     .then((items) => {
       res.status(200).send(items);
     })
     .catch((err) => {
-      console.error(err);
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
+      next(err);
     });
 };
 
@@ -35,10 +32,9 @@ const createItem = (req, res) => {
           message:
             "Invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.",
         });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -67,10 +63,9 @@ const deleteItem = (req, res) => {
       }
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -90,10 +85,9 @@ const likeItem = (req, res) => {
       }
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: err.message });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -114,10 +108,9 @@ const dislikeItem = (req, res) => {
       }
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: err.message });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 

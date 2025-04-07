@@ -35,10 +35,9 @@ const updateCurrentUser = (req, res) => {
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).json({ message: err.message });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error has occurred on the server." });
     });
 };
 
@@ -75,10 +74,9 @@ const createUser = (req, res) => {
         return res.status(BAD_REQUEST).send({
           message: err.message,
         });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -94,10 +92,9 @@ const getCurrentUser = (req, res) => {
       }
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -121,10 +118,9 @@ const login = (req, res) => {
       console.error(err);
       if (err.message === "Incorrect email or password") {
         return res.status(UNAUTHORIZED_STATUS).send({ message: err.message });
+      } else {
+        next(err);
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({
-        message: "An error has occurred on the server.",
-      });
     });
 };
 
