@@ -1,75 +1,58 @@
 const clothingItem = require("../models/clothingItem");
-const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-  FORBIDDEN_STATUS,
-} = require("../utils/errors");
+const BadRequestError = require("../utils/BadRequestError");
+const NotFoundError = require("../utils/NotFoundError");
+const ForbiddenError = require("../utils/ForbiddenError");
 
 const getItems = (req, res, next) => {
   clothingItem
     .find({})
     .then((items) => {
-      res.status(200).send(items);
+      res.send(items);
     })
-    .catch((err) => {
-      next(err);
-    });
+    .catch(next);
 };
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
-
-  console.log(req.user._id);
 
   clothingItem
     .create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send(item))
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message:
-            "Invalid data passed to the methods for creating an item/user or updating an item, or invalid ID passed to the params.",
-        });
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid data passed when creating an item");
       }
+      next(err);
     });
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const userId = req.user._id;
   const { itemId } = req.params;
-  console.log(itemId);
+
   clothingItem
     .findById(itemId)
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== userId) {
-        return res.status(FORBIDDEN_STATUS).json({
-          message: "Forbidden: You are not the owner of this item.",
-        });
+        throw new ForbiddenError("You are not the owner of this item");
       }
-
       return clothingItem
         .findByIdAndDelete(itemId)
         .then(() => res.json({ message: "Item successfully deleted" }));
     })
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
+        throw new NotFoundError("Item not found");
       }
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      } else {
-        next(err);
+        throw new BadRequestError("Invalid item ID");
       }
+      next(err);
     });
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   clothingItem
     .findByIdAndUpdate(
       req.params.itemId,
@@ -77,21 +60,19 @@ const likeItem = (req, res) => {
       { new: true }
     )
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.send(item))
     .catch((err) => {
-      console.error(err);
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        throw new BadRequestError("Invalid item ID");
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      } else {
-        next(err);
+        throw new NotFoundError("Item not found");
       }
+      next(err);
     });
 };
 
-const dislikeItem = (req, res) => {
+const dislikeItem = (req, res, next) => {
   clothingItem
     .findByIdAndUpdate(
       req.params.itemId,
@@ -99,18 +80,15 @@ const dislikeItem = (req, res) => {
       { new: true }
     )
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.send(item))
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        throw new BadRequestError("Invalid item ID");
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      } else {
-        next(err);
+        throw new NotFoundError("Item not found");
       }
+      next(err);
     });
 };
 
