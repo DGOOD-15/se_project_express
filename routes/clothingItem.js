@@ -14,13 +14,13 @@ const {
 } = require("../controllers/clothingItems");
 
 router.get("/", getItems);
-router.post("/", clothingItemValidation, authMiddleware, createItem);
-router.delete("/:itemId", idValidation, authMiddleware, deleteItem);
-router.put("/:itemId/likes", idValidation, authMiddleware, likeItem);
+router.post("/", authMiddleware, clothingItemValidation, createItem);
+router.delete("/:itemId", authMiddleware, idValidation, deleteItem);
+router.put("/:itemId/likes", authMiddleware, idValidation, likeItem);
 router.delete(
   "/:itemId/likes",
-  clothingItemValidation,
   authMiddleware,
+  clothingItemValidation,
   dislikeItem
 );
 

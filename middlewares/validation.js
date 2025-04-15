@@ -64,7 +64,7 @@ module.exports.loginValidation = celebrate({
 
 module.exports.idValidation = celebrate({
   params: Joi.object().keys({
-    itemId: Joi.string().hexadecimal().length(24).required().messages({
+    itemId: Joi.string().hex().length(24).required().messages({
       "string.hex": "ID must be a valid hexadecimal string",
       "string.length": "ID must be 24 characters long",
       "any.required": "ID is required",
