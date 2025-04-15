@@ -20,7 +20,8 @@ const createItem = (req, res, next) => {
     .then((item) => res.status(201).send(item))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        throw new BadRequestError("Invalid data passed when creating an item");
+        next(new BadRequestError("Invalid data passed when creating an item"));
+        return;
       }
       next(err);
     });
@@ -35,67 +36,72 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== userId) {
-        throw new ForbiddenError("You are not the owner of this item");
+        return next(new ForbiddenError("You are not the owner of this item"));
       }
-      return clothingItem
-        .findByIdAndDelete(itemId)
-        .then(() => res.json({ message: "Item successfully deleted" }));
+      return clothingItem.findByIdAndDelete(itemId);
+    })
+    .then((deletedItem) => {
+      res.json({ message: "Item successfully deleted" });
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Item not found");
+        return next(new NotFoundError("Item not found"));
       }
       if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
+        return next(new BadRequestError("Invalid item ID"));
       }
-      next(err);
+      return next(err);
     });
-};
 
-const likeItem = (req, res, next) => {
-  clothingItem
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true }
-    )
-    .orFail()
-    .then((item) => res.send(item))
-    .catch((err) => {
-      if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
-      }
-      if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Item not found");
-      }
-      next(err);
-    });
-};
+  const likeItem = (req, res, next) => {
+    clothingItem
+      .findByIdAndUpdate(
+        req.params.itemId,
+        { $addToSet: { likes: req.user._id } },
+        { new: true }
+      )
+      .orFail()
+      .then((item) => res.send(item))
+      .catch((err) => {
+        if (err.name === "CastError") {
+          next(new BadRequestError("Invalid item ID"));
+          return;
+        }
+        if (err.name === "DocumentNotFoundError") {
+          next(new NotFoundError("Item not found"));
+          return;
+        }
+        next(err);
+      });
+  };
 
-const dislikeItem = (req, res, next) => {
-  clothingItem
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true }
-    )
-    .orFail()
-    .then((item) => res.send(item))
-    .catch((err) => {
-      if (err.name === "CastError") {
-        throw new BadRequestError("Invalid item ID");
-      }
-      if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Item not found");
-      }
-      next(err);
-    });
-};
+  const dislikeItem = (req, res, next) => {
+    clothingItem
+      .findByIdAndUpdate(
+        req.params.itemId,
+        { $pull: { likes: req.user._id } },
+        { new: true }
+      )
+      .orFail()
+      .then((item) => res.send(item))
+      .catch((err) => {
+        if (err.name === "CastError") {
+          next(new BadRequestError("Invalid item ID"));
+          return;
+        }
+        if (err.name === "DocumentNotFoundError") {
+          next(new NotFoundError("Item not found"));
+          return;
+        }
+        next(err);
+      });
+  };
 
-module.exports = {
-  createItem,
-  getItems,
-  deleteItem,
-  likeItem,
-  dislikeItem,
+  module.exports = {
+    createItem,
+    getItems,
+    deleteItem,
+    likeItem,
+    dislikeItem,
+  };
 };

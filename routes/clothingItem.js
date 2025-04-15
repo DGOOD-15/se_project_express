@@ -1,12 +1,7 @@
 const { celebrate, Joi } = require("celebrate");
 const router = require("express").Router();
 const authMiddleware = require("../middlewares/auth");
-
-const validateItemId = {
-  params: Joi.object().keys({
-    itemId: Joi.string().hex().length(24).required(),
-  }),
-};
+const clothingItemValidation = require("../middlewares/validation");
 
 const {
   createItem,
@@ -20,19 +15,19 @@ router.get("/", getItems);
 router.post("/", authMiddleware, createItem);
 router.delete(
   "/:itemId",
-  celebrate(validateItemId),
+  celebrate(clothingItemValidation),
   authMiddleware,
   deleteItem
 );
 router.put(
   "/:itemId/likes",
-  celebrate(validateItemId),
+  celebrate(clothingItemValidation),
   authMiddleware,
   likeItem
 );
 router.delete(
   "/:itemId/likes",
-  celebrate(validateItemId),
+  celebrate(clothingItemValidation),
   authMiddleware,
   dislikeItem
 );

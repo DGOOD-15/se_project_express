@@ -1,11 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const { NotFoundError } = require("../utils/NotFoundError");
-const { BadRequestError } = require("../utils/BadRequestError");
-const { ConflictError } = require("../utils/ConflictError");
-const { UnauthorizedError } = require("../utils/UnauthorizedError");
-const { JWT_SECRET } = require("../utils/config");
+const NotFoundError = require("../utils/NotFoundError");
+const BadRequestError = require("../utils/BadRequestError");
+const ConflictError = require("../utils/ConflictError");
+const UnauthorizedError = require("../utils/UnauthorizedError");
+const JWT_SECRET = require("../utils/config");
 
 const updateCurrentUser = (req, res, next) => {
   const userId = req.user._id;
@@ -30,7 +30,8 @@ const updateCurrentUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        throw new BadRequestError(err.message);
+        next(new BadRequestError("Invalid data passed when creating an item"));
+        return;
       }
       next(err);
     });
@@ -38,8 +39,10 @@ const updateCurrentUser = (req, res, next) => {
 
 const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
-  if (!email) {
-    throw new BadRequestError("Email is required");
+
+  if (!email || !password) {
+    next(new BadRequestError("Email and password are required"));
+    return;
   }
 
   return User.findOne({ email })
@@ -51,13 +54,14 @@ const createUser = (req, res, next) => {
     })
     .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
-      const createdUser = user.toObject();
-      delete createdUser.password;
-      return res.send(createdUser);
+      const userData = user.toObject();
+      delete userData.password;
+      res.status(201).send(userData);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        throw new BadRequestError(err.message);
+        next(new BadRequestError(err.message));
+        return;
       }
       next(err);
     });
@@ -70,10 +74,12 @@ const getCurrentUser = (req, res, next) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("User not found");
+        next(new NotFoundError("User not found"));
+        return;
       }
       if (err.name === "CastError") {
-        throw new BadRequestError("Invalid user ID");
+        next(new BadRequestError("Invalid user ID"));
+        return;
       }
       next(err);
     });
@@ -83,7 +89,8 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new BadRequestError("Email and password required");
+    next(new BadRequestError("Email and password required"));
+    return;
   }
 
   return User.findUserByCredentials(email, password)
@@ -95,9 +102,11 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        throw new UnauthorizedError("Incorrect email or password");
+        next(new UnauthorizedError("Incorrect email or password"));
+        return;
       }
       next(err);
     });
 };
+
 module.exports = { updateCurrentUser, createUser, getCurrentUser, login };
