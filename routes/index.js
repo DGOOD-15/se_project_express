@@ -1,4 +1,3 @@
-const { celebrate, Joi } = require("celebrate");
 const router = require("express").Router();
 const userRouter = require("./users");
 const clothingItems = require("./clothingItem");
@@ -10,8 +9,8 @@ const {
 
 router.use("/users", userRouter);
 router.use("/items", clothingItems);
-router.post("/signin", celebrate(loginValidation), login);
-router.post("/signup", celebrate(userInfoValidation), createUser);
+router.post("/signin", loginValidation, login);
+router.post("/signup", userInfoValidation, createUser);
 
 const NotFoundError = require("../utils/NotFoundError");
 

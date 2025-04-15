@@ -1,7 +1,9 @@
-const { celebrate, Joi } = require("celebrate");
 const router = require("express").Router();
 const authMiddleware = require("../middlewares/auth");
-const clothingItemValidation = require("../middlewares/validation");
+const {
+  clothingItemValidation,
+  idValidation,
+} = require("../middlewares/validation");
 
 const {
   createItem,
@@ -12,22 +14,12 @@ const {
 } = require("../controllers/clothingItems");
 
 router.get("/", getItems);
-router.post("/", authMiddleware, createItem);
-router.delete(
-  "/:itemId",
-  celebrate(clothingItemValidation),
-  authMiddleware,
-  deleteItem
-);
-router.put(
-  "/:itemId/likes",
-  celebrate(clothingItemValidation),
-  authMiddleware,
-  likeItem
-);
+router.post("/", clothingItemValidation, authMiddleware, createItem);
+router.delete("/:itemId", idValidation, authMiddleware, deleteItem);
+router.put("/:itemId/likes", idValidation, authMiddleware, likeItem);
 router.delete(
   "/:itemId/likes",
-  celebrate(clothingItemValidation),
+  clothingItemValidation,
   authMiddleware,
   dislikeItem
 );

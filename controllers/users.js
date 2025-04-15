@@ -5,7 +5,7 @@ const NotFoundError = require("../utils/NotFoundError");
 const BadRequestError = require("../utils/BadRequestError");
 const ConflictError = require("../utils/ConflictError");
 const UnauthorizedError = require("../utils/UnauthorizedError");
-const JWT_SECRET = require("../utils/config");
+const { JWT_SECRET } = require("../utils/config");
 
 const updateCurrentUser = (req, res, next) => {
   const userId = req.user._id;
@@ -41,8 +41,7 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!email || !password) {
-    next(new BadRequestError("Email and password are required"));
-    return;
+    return next(new BadRequestError("Email and password are required"));
   }
 
   return User.findOne({ email })
@@ -56,14 +55,13 @@ const createUser = (req, res, next) => {
     .then((user) => {
       const userData = user.toObject();
       delete userData.password;
-      res.status(201).send(userData);
+      return res.status(201).send(userData);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new BadRequestError(err.message));
-        return;
+        return next(new BadRequestError(err.message));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -89,8 +87,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    next(new BadRequestError("Email and password required"));
-    return;
+    return next(new BadRequestError("Email and password required"));
   }
 
   return User.findUserByCredentials(email, password)
@@ -98,14 +95,13 @@ const login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.send({ token });
+      return res.send({ token });
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        next(new UnauthorizedError("Incorrect email or password"));
-        return;
+        return next(new UnauthorizedError("Incorrect email or password"));
       }
-      next(err);
+      return next(err);
     });
 };
 
